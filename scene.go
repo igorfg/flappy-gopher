@@ -1,17 +1,18 @@
 package main
 
 import (
-	"context"
 	"fmt"
+	"log"
+	"time"
+
 	"github.com/veandco/go-sdl2/img"
 	"github.com/veandco/go-sdl2/sdl"
-	"time"
 )
 
 type scene struct {
-	time  int
 	bg    *sdl.Texture
-	birds []*sdl.Texture
+	bird  *bird
+	pipes *pipes
 }
 
 func newScene(r *sdl.Renderer) (*scene, error) {
@@ -20,30 +21,39 @@ func newScene(r *sdl.Renderer) (*scene, error) {
 		return nil, fmt.Errorf("could not load background image: %v", err)
 	}
 
-	var birds []*sdl.Texture
-	for i := 1; i <= 4; i++ {
-		path := fmt.Sprintf("res/img/bird_frame_%d.png", i)
-		bird, err := img.LoadTexture(r, path)
-		if err != nil {
-			return nil, fmt.Errorf("could not load background image: %v", err)
-		}
-
-		birds = append(birds, bird)
+	b, err := newBird(r)
+	if err != nil {
+		return nil, err
 	}
 
-	return &scene{bg: bg, birds: birds}, nil
+	ps, err := newPipes(r)
+	if err != nil {
+		return nil, err
+	}
+
+	return &scene{bg: bg, bird: b, pipes: ps}, nil
 }
 
-func (s *scene) run(ctx context.Context, r *sdl.Renderer) <-chan error {
+func (s *scene) run(events <-chan sdl.Event, r *sdl.Renderer) <-chan error {
 	errc := make(chan error)
 
 	go func() {
 		defer close(errc)
-		for range time.Tick(10 * time.Millisecond) {
+		tick := time.Tick(10 * time.Millisecond)
+		for {
 			select {
-			case <-ctx.Done():
-				return
-			default:
+			case e := <-events:
+				if done := s.handleEvent(e); done {
+					return
+				}
+			case <-tick:
+				s.update()
+				if s.bird.isDead() {
+					drawTitle(r, "Game Over")
+					time.Sleep(time.Second)
+					s.restart()
+				}
+
 				if err := s.paint(r); err != nil {
 					errc <- err
 				}
@@ -53,19 +63,45 @@ func (s *scene) run(ctx context.Context, r *sdl.Renderer) <-chan error {
 	return errc
 }
 
+func (s *scene) handleEvent(event sdl.Event) bool {
+	switch event.(type) {
+	case *sdl.QuitEvent:
+		return true
+	case *sdl.MouseButtonEvent:
+		s.bird.jump()
+	case *sdl.MouseMotionEvent, *sdl.WindowEvent, *sdl.TouchFingerEvent:
+		// do nothing
+	default:
+		log.Printf("unknown event %T", event)
+	}
+	return false
+
+}
+
+func (s *scene) update() {
+	s.bird.update()
+	s.pipes.update()
+	s.pipes.touch(s.bird)
+}
+
+func (s *scene) restart() {
+	s.bird.restart()
+	s.pipes.restart()
+}
+
 func (s *scene) paint(r *sdl.Renderer) error {
-	s.time++
 	r.Clear()
 
 	if err := r.Copy(s.bg, nil, nil); err != nil {
 		return fmt.Errorf("could not copy background: %v", err)
 	}
 
-	rect := &sdl.Rect{X: 10, Y: 300 - 43/2, W: 50, H: 43}
+	if err := s.bird.paint(r); err != nil {
+		return err
+	}
 
-	i := s.time / 10 % len(s.birds)
-	if err := r.Copy(s.birds[i], nil, rect); err != nil {
-		return fmt.Errorf("could not copy background: %v", err)
+	if err := s.pipes.paint(r); err != nil {
+		return err
 	}
 
 	r.Present()
@@ -74,4 +110,6 @@ func (s *scene) paint(r *sdl.Renderer) error {
 
 func (s *scene) destroy() {
 	s.bg.Destroy()
+	s.bird.destroy()
+	s.pipes.destroy()
 }
