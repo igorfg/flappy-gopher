@@ -20,7 +20,7 @@ type pipes struct {
 }
 
 func newPipes(r *sdl.Renderer) (*pipes, error) {
-	texture, err := img.LoadTexture(r, "res/img/pipe.png")
+	texture, err := img.LoadTexture(r, "res/img/shaver.png")
 	if err != nil {
 		return nil, fmt.Errorf("could not load pipe image: %v", err)
 	}

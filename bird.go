@@ -28,7 +28,7 @@ type bird struct {
 func newBird(r *sdl.Renderer) (*bird, error) {
 	var textures []*sdl.Texture
 	for i := 1; i <= 4; i++ {
-		path := fmt.Sprintf("res/img/bird_frame_%d.png", i)
+		path := fmt.Sprintf("res/img/%d.png", i)
 		texture, err := img.LoadTexture(r, path)
 		if err != nil {
 			return nil, fmt.Errorf("could not load background image: %v", err)
