@@ -49,8 +49,8 @@ func (s *scene) run(events <-chan sdl.Event, r *sdl.Renderer) <-chan error {
 			case <-tick:
 				s.update()
 				if s.bird.isDead() {
-					drawTitle(r, "Game Over")
-					time.Sleep(time.Second)
+					s.paintGameover(r)
+					time.Sleep(2 * time.Second)
 					s.restart()
 				}
 
@@ -112,4 +112,17 @@ func (s *scene) destroy() {
 	s.bg.Destroy()
 	s.bird.destroy()
 	s.pipes.destroy()
+}
+
+func (s *scene) paintGameover(r *sdl.Renderer) error {
+	gameOver, err := img.LoadTexture(r, "res/img/GAME-OVER.png")
+	if err != nil {
+		return fmt.Errorf("could not load game over image: %v", err)
+	}
+	if err := r.Copy(gameOver, nil, nil); err != nil {
+		return fmt.Errorf("could not copy game over: %v", err)
+	}
+
+	r.Present()
+	return nil
 }

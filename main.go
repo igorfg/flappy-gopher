@@ -3,9 +3,11 @@ package main
 import (
 	"fmt"
 	"os"
+	"reflect"
 	"runtime"
-	"time"
 
+	"github.com/veandco/go-sdl2/img"
+	"github.com/veandco/go-sdl2/mix"
 	"github.com/veandco/go-sdl2/sdl"
 	"github.com/veandco/go-sdl2/ttf"
 )
@@ -29,17 +31,37 @@ func run() error {
 	}
 	defer ttf.Quit()
 
+	if err := mix.Init(0); err != nil {
+		return fmt.Errorf("could not initialize MIX: %v", err)
+	}
+	defer mix.Quit()
+
+	sndFmt := uint16(mix.DEFAULT_FORMAT)
+	if mix.OpenAudio(44100, sndFmt, 2, 1024); err != nil {
+		return fmt.Errorf("could not open audio mixer: %v", err)
+	}
+
+	music, err := mix.LoadMUS("res/music/Crimson_Nights_Track_02.mp3")
+	if err != nil {
+		return fmt.Errorf("could not load music: %v", err)
+	}
+
 	w, r, err := sdl.CreateWindowAndRenderer(800, 600, sdl.WINDOW_SHOWN)
 	if err != nil {
 		return fmt.Errorf("could not create window %v", err)
 	}
 	defer w.Destroy()
 
-	if err := drawTitle(r, "Flappy Gopher"); err != nil {
-		return fmt.Errorf("could not draw title: %v", err)
+	if !mix.PlayingMusic() {
+		music.Play(0)
 	}
 
-	time.Sleep(1 * time.Second)
+	paintTitleScreen(r)
+	event := sdl.WaitEvent()
+	var mouseEvent *sdl.MouseButtonEvent
+	for reflect.TypeOf(event) != reflect.TypeOf(mouseEvent) {
+		event = sdl.WaitEvent()
+	}
 
 	s, err := newScene(r)
 	if err != nil {
@@ -63,7 +85,7 @@ func run() error {
 func drawTitle(r *sdl.Renderer, text string) error {
 	r.Clear()
 
-	f, err := ttf.OpenFont("res/fonts/Flappy.ttf", 20)
+	f, err := ttf.OpenFont("res/fonts/Rockwell Extra Bold.ttf", 20)
 
 	if err != nil {
 		return fmt.Errorf("could not return font: %v", err)
@@ -88,5 +110,18 @@ func drawTitle(r *sdl.Renderer, text string) error {
 	}
 	r.Present()
 
+	return nil
+}
+
+func paintTitleScreen(r *sdl.Renderer) error {
+	title, err := img.LoadTexture(r, "res/img/START-GAME.png")
+	if err != nil {
+		return fmt.Errorf("could not load title image: %v", err)
+	}
+	if err := r.Copy(title, nil, nil); err != nil {
+		return fmt.Errorf("could not copy title: %v", err)
+	}
+
+	r.Present()
 	return nil
 }
