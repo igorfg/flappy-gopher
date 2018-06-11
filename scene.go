@@ -6,13 +6,15 @@ import (
 	"time"
 
 	"github.com/veandco/go-sdl2/img"
+	"github.com/veandco/go-sdl2/mix"
 	"github.com/veandco/go-sdl2/sdl"
 )
 
 type scene struct {
-	bg    *sdl.Texture
-	bird  *bird
-	pipes *pipes
+	bg         *sdl.Texture
+	bird       *bird
+	pipes      *pipes
+	razerSound *mix.Chunk
 }
 
 func newScene(r *sdl.Renderer) (*scene, error) {
@@ -31,7 +33,12 @@ func newScene(r *sdl.Renderer) (*scene, error) {
 		return nil, err
 	}
 
-	return &scene{bg: bg, bird: b, pipes: ps}, nil
+	rs, err := mix.LoadWAV("res/music/razor.wav")
+	if err != nil {
+		return nil, fmt.Errorf("could not load razor sound: %v", err)
+	}
+
+	return &scene{bg: bg, bird: b, pipes: ps, razerSound: rs}, nil
 }
 
 func (s *scene) run(events <-chan sdl.Event, r *sdl.Renderer) <-chan error {
@@ -50,7 +57,10 @@ func (s *scene) run(events <-chan sdl.Event, r *sdl.Renderer) <-chan error {
 				s.update()
 				if s.bird.isDead() {
 					s.paintGameover(r)
-					time.Sleep(2 * time.Second)
+					mix.PauseMusic()
+					s.razerSound.Play(-1, 0)
+					time.Sleep(3 * time.Second)
+					mix.ResumeMusic()
 					s.restart()
 				}
 

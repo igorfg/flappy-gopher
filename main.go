@@ -53,7 +53,7 @@ func run() error {
 	defer w.Destroy()
 
 	if !mix.PlayingMusic() {
-		music.Play(0)
+		music.Play(10)
 	}
 
 	paintTitleScreen(r)
