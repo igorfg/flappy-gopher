@@ -32,5 +32,5 @@ For more information go to https://github.com/veandco/go-sdl2\
 
 5. Build the executable file\
 Go to your /home/yousername/go/src/github.com/igorfg/flappy-tiago\
-`$ go build`
+`$ go build`\
 `$ ./flappy-tiago`
