@@ -20,8 +20,9 @@ If you whish to build flappy-tiago you need to:
 https://golang.org/doc/install
 
 2. Install SDL on your machine\
-If you use a distribuition that update their repositories frequently, the easiest way is to install SDL is:\
+This was tested on Ubuntu 16.04 and Linux Mint 19:\
 `$ apt install libsdl2{,-image,-mixer,-ttf,-gfx}-dev`
+For more information go to https://github.com/veandco/go-sdl2\
 
 3. Get SDL wrapper for golang\
 `$ go get -v github.com/veandco/go-sdl2/{sdl,img,mix,ttf}`
@@ -29,7 +30,7 @@ If you use a distribuition that update their repositories frequently, the easies
 4. Get flappy-tiago's source code\
 `$ go get -v github.com/igorfg/flappy-tiago`
 
-5.Build the executable file\
-Go to your /home/yousername/go/src/github.com/igorfg/flappy-tiago
+5. Build the executable file\
+Go to your /home/yousername/go/src/github.com/igorfg/flappy-tiago\
 `$ go build`
 `$ ./flappy-tiago`
