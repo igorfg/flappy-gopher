@@ -21,7 +21,7 @@ https://golang.org/doc/install
 
 2. Install SDL on your machine\
 This was tested on Ubuntu 16.04 and Linux Mint 19:\
-`$ apt install libsdl2{,-image,-mixer,-ttf,-gfx}-dev`
+`$ apt install libsdl2{,-image,-mixer,-ttf,-gfx}-dev`\
 For more information go to https://github.com/veandco/go-sdl2\
 
 3. Get SDL wrapper for golang\
